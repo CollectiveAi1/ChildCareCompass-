@@ -109,3 +109,13 @@ export interface HealthProfile {
   medications: Medication[];
   specialNeeds?: string;
 }
+
+// --- SCHEDULING TYPES ---
+
+export type ShiftType = 'OPEN' | 'MID' | 'CLOSE' | 'OFF';
+
+export interface ShiftAssignment {
+  staffId: string;
+  day: string; // 'Mon', 'Tue', etc.
+  type: ShiftType;
+}
