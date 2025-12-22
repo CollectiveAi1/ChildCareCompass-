@@ -15,8 +15,17 @@ interface NestCardProps {
  * Uses springy hover effects.
  */
 export const NestCard: React.FC<NestCardProps> = ({ child, onClick, selected }) => {
-  const getStatusConfig = (status: string) => {
-    switch (status) {
+  const getStatusConfig = (child: Child) => {
+    // Priority 1: Enrollment Status (if not active)
+    if (child.enrollmentStatus === 'PENDING') {
+      return { label: 'Pending Approval', classes: 'bg-purple-100 text-purple-700' };
+    }
+    if (child.enrollmentStatus === 'WAITLIST') {
+      return { label: 'On Waitlist', classes: 'bg-yellow-100 text-yellow-700' };
+    }
+
+    // Priority 2: Daily Attendance Status (only for enrolled children)
+    switch (child.status) {
       case 'PRESENT':
         return { label: 'Here', classes: 'bg-green-100 text-green-700' };
       case 'CHECKED_OUT':
@@ -26,7 +35,7 @@ export const NestCard: React.FC<NestCardProps> = ({ child, onClick, selected }) 
     }
   };
 
-  const statusConfig = getStatusConfig(child.status);
+  const statusConfig = getStatusConfig(child);
 
   return (
     <div 
@@ -71,10 +80,17 @@ export const NestCard: React.FC<NestCardProps> = ({ child, onClick, selected }) 
           
           <p className="text-sm text-gray-500 mb-2">{child.lastName}</p>
           
-          {child.lastActivityTime && (
+          {child.enrollmentStatus === 'ENROLLED' && child.lastActivityTime && (
             <div className="flex items-center text-xs text-gray-400">
               <span className={`w-2 h-2 rounded-full mr-2 ${child.status === 'PRESENT' ? 'bg-accent-300 animate-pulse' : 'bg-gray-300'}`}></span>
               {child.lastActivityTime}
+            </div>
+          )}
+
+          {child.enrollmentStatus !== 'ENROLLED' && (
+            <div className="flex items-center text-xs text-gray-400">
+              <span className="mr-1">🎂</span>
+              {child.dob ? new Date(child.dob).getFullYear() : 'N/A'} (Age {child.dob ? new Date().getFullYear() - new Date(child.dob).getFullYear() : '?'})
             </div>
           )}
         </div>

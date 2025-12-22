@@ -13,6 +13,7 @@ export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ activity }) 
       case ActivityType.MEAL: return '🍎';
       case ActivityType.NAP: return '😴';
       case ActivityType.CHECK_IN: return '👋';
+      case ActivityType.MEDICATION: return '💊';
       default: return '📝';
     }
   };

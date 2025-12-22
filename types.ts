@@ -11,8 +11,11 @@ export enum ActivityType {
   MEAL = 'MEAL',
   NAP = 'NAP',
   INCIDENT = 'INCIDENT',
-  NOTE = 'NOTE'
+  NOTE = 'NOTE',
+  MEDICATION = 'MEDICATION'
 }
+
+export type EnrollmentStatus = 'ENROLLED' | 'WAITLIST' | 'PENDING' | 'ARCHIVED';
 
 export interface Child {
   id: string;
@@ -20,12 +23,13 @@ export interface Child {
   lastName: string;
   avatarUrl: string;
   classroom: string;
-  classroomId: string; // Added for filtering
+  classroomId: string;
   status: 'PRESENT' | 'ABSENT' | 'CHECKED_OUT';
+  enrollmentStatus: EnrollmentStatus;
   lastActivityTime?: string;
   allergies?: string[];
-  dob?: string; // Added for profile
-  notes?: string; // Added for editable profile notes
+  dob?: string;
+  notes?: string;
 }
 
 export interface Activity {
@@ -39,12 +43,24 @@ export interface Activity {
   authorName: string;
 }
 
+export interface StaffMember {
+  id: string;
+  name: string;
+  role: string; // e.g. "Lead Teacher", "Assistant"
+  email: string;
+  phone: string;
+  avatarUrl: string;
+  bio?: string;
+  joinedDate: string;
+  assignedClassroomIds: string[];
+}
+
 export interface Classroom {
   id: string;
   name: string;
   capacity: number;
   enrolled: number;
-  staff: string[];
+  staffIds: string[]; // Reference to StaffMember IDs
 }
 
 export interface Guardian {
@@ -62,4 +78,34 @@ export interface Invoice {
   amount: string;
   status: 'PAID' | 'PENDING' | 'OVERDUE';
   date: string;
+}
+
+// --- HEALTH MODULE TYPES ---
+
+export interface Immunization {
+  id: string;
+  name: string;
+  dueDate: string;
+  dateGiven?: string;
+  status: 'COMPLIANT' | 'OVERDUE' | 'UPCOMING';
+}
+
+export interface Medication {
+  id: string;
+  name: string;
+  dosage: string;
+  frequency: string;
+  instructions?: string;
+  lastAdministered?: string;
+  endDate?: string;
+}
+
+export interface HealthProfile {
+  childId: string;
+  bloodType?: string;
+  doctorName?: string;
+  doctorPhone?: string;
+  immunizations: Immunization[];
+  medications: Medication[];
+  specialNeeds?: string;
 }
