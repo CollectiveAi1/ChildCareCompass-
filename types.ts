@@ -139,3 +139,25 @@ export interface ShiftAssignment {
   day: string; // 'Mon', 'Tue', etc.
   type: ShiftType;
 }
+
+// --- LESSON PLAN TYPES ---
+
+export interface DailyActivity {
+  day: string;
+  activityName: string;
+  description: string;
+}
+
+export interface LessonPlan {
+  id: string;
+  title: string;
+  theme: string;
+  startDate: string;
+  endDate: string;
+  objectives: string[];
+  materials: string[];
+  activities: DailyActivity[];
+  status: 'DRAFT' | 'PUBLISHED';
+  authorId: string;
+  classroomId: string;
+}
