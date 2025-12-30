@@ -1,7 +1,8 @@
-# NestFlow - Architecture & Design Document
+
+# Child Care Compass - Architecture & Design Document
 
 ## 1. Product Vision & Personas
-**NestFlow** creates a "Soft Software" experience, moving away from corporate stiffness to a nurturing, playful digital environment.
+**Child Care Compass** creates a "Soft Software" experience, moving away from corporate stiffness to a nurturing, playful digital environment.
 - **Visual Vibe:** Organic shapes, "Doodle" aesthetics, and pastel tones (Sky Blue/Playful Pink).
 - **Core Value:** Reduces anxiety for parents via "Stories" and reduces friction for teachers via one-hand operational "Kanban" flows.
 
