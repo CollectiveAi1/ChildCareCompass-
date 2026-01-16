@@ -1,86 +1,15 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
     <title>Child Care Compass</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-              display: ['Quicksand', 'sans-serif'],
-            },
-            colors: {
-              primary: {
-                50: '#F0F9FF',
-                100: '#E0F2FE',
-                200: '#BAE6FD',
-                300: '#16C1C1', // Brand Teal
-                400: '#0EB0B0',
-                500: '#001F54', // Brand Dark Blue
-                600: '#2563EB',
-                700: '#1D4ED8',
-              },
-              brand: {
-                teal: '#16C1C1',
-                yellow: '#FFDE00',
-                blue: '#001F54',
-              },
-              accent: {
-                300: '#FFAFCC',
-                400: '#FF8FAB',
-              },
-              surface: {
-                50: '#F9FAFB',
-                100: '#F3F4F6',
-              }
-            },
-            borderRadius: {
-              'nest': '24px 12px 24px 24px',
-              'blob': '30% 70% 70% 30% / 30% 30% 70% 70%',
-            }
-          }
-        }
-      }
-    </script>
-    <style>
-      body {
-        background-color: #F3F4F6;
-        font-family: 'Inter', sans-serif;
-      }
-      h1, h2, h3, h4, h5, h6 {
-        font-family: 'Quicksand', sans-serif;
-      }
-      ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-      }
-      ::-webkit-scrollbar-track {
-        background: transparent; 
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #cbd5e1; 
-        border-radius: 10px;
-      }
-    </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3"
-  }
-}
-</script>
-</head>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
