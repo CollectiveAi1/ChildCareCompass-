@@ -11,6 +11,11 @@ import messagesRoutes from './routes/messages';
 
 dotenv.config();
 
+if (!process.env.JWT_SECRET) {
+  console.error('❌ FATAL: JWT_SECRET is not set in environment variables');
+  process.exit(1);
+}
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -20,6 +25,8 @@ const io = new Server(httpServer, {
     credentials: true,
   },
 });
+
+app.set('io', io);
 
 // Middleware
 app.use(cors({
@@ -63,23 +70,6 @@ io.on('connection', (socket) => {
     console.log(`Socket ${socket.id} joined classroom:${classroomId}`);
   });
 
-  // Activity created event
-  socket.on('activity:created', (data: { childId: string; activity: any }) => {
-    io.to(`child:${data.childId}`).emit('activity:new', data.activity);
-    console.log(`Activity broadcast to child:${data.childId}`);
-  });
-
-  // Message sent event
-  socket.on('message:sent', (data: { recipientId: string; message: any }) => {
-    io.to(`user:${data.recipientId}`).emit('message:new', data.message);
-    console.log(`Message broadcast to user:${data.recipientId}`);
-  });
-
-  // Attendance update event
-  socket.on('attendance:update', (data: { classroomId: string; childId: string; status: string }) => {
-    io.to(`classroom:${data.classroomId}`).emit('attendance:changed', data);
-    console.log(`Attendance update broadcast to classroom:${data.classroomId}`);
-  });
 
   socket.on('disconnect', () => {
     console.log('🔌 Client disconnected:', socket.id);

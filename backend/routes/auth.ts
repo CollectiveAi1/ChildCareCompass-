@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { query } from '../config/database';
 import { z } from 'zod';
+import { toCamelCase } from '../utils/case-converter';
 
 const router = Router();
 
@@ -48,20 +49,13 @@ router.post('/login', async (req, res) => {
         role: user.role,
         centerId: user.center_id,
       },
-      process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      process.env.JWT_SECRET!,
+      { expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as any }
     );
 
     res.json({
       token,
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        firstName: user.first_name,
-        lastName: user.last_name,
-        centerId: user.center_id,
-      },
+      user: toCamelCase(user),
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -103,20 +97,13 @@ router.post('/register', async (req, res) => {
         role: user.role,
         centerId: user.center_id,
       },
-      process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      process.env.JWT_SECRET!,
+      { expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as any }
     );
 
     res.status(201).json({
       token,
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        firstName: user.first_name,
-        lastName: user.last_name,
-        centerId: user.center_id,
-      },
+      user: toCamelCase(user),
     });
   } catch (error) {
     console.error('Register error:', error);

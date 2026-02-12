@@ -54,18 +54,6 @@ class SocketService {
     this.socket?.emit('join:classroom', classroomId);
   }
 
-  // Emit events
-  emitActivityCreated(childId: string, activity: any) {
-    this.socket?.emit('activity:created', { childId, activity });
-  }
-
-  emitMessageSent(recipientId: string, message: any) {
-    this.socket?.emit('message:sent', { recipientId, message });
-  }
-
-  emitAttendanceUpdate(classroomId: string, childId: string, status: string) {
-    this.socket?.emit('attendance:update', { classroomId, childId, status });
-  }
 
   // Listen to events
   onActivityNew(callback: (activity: any) => void) {

@@ -1,8 +1,21 @@
 import { Router } from 'express';
 import { query } from '../config/database';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
+import { toCamelCase } from '../utils/case-converter';
+import { z } from 'zod';
 
 const router = Router();
+
+const CheckInSchema = z.object({
+  childId: z.string().uuid(),
+  notes: z.string().optional().nullable(),
+});
+
+const CheckOutSchema = z.object({
+  childId: z.string().uuid(),
+  signatureUrl: z.string().url().optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
 
 // Get attendance records
 router.get('/', authenticateToken, async (req: AuthRequest, res) => {
@@ -44,7 +57,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     queryText += ' ORDER BY a.date DESC, a.check_in_time DESC';
 
     const result = await query(queryText, params);
-    res.json(result.rows);
+    res.json(toCamelCase(result.rows));
   } catch (error) {
     console.error('Get attendance error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -54,12 +67,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
 // Check-in
 router.post('/check-in', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const { childId, notes } = req.body;
+    const { childId, notes } = CheckInSchema.parse(req.body);
     const userId = req.user?.id;
-
-    if (!childId) {
-      return res.status(400).json({ error: 'childId is required' });
-    }
 
     const result = await query(
       `INSERT INTO attendance (child_id, check_in_time, checked_in_by, notes, date)
@@ -68,15 +77,31 @@ router.post('/check-in', authenticateToken, async (req: AuthRequest, res) => {
       [childId, userId, notes]
     );
 
+    const attendance = toCamelCase(result.rows[0]);
+
     // Update child status
-    await query(
-      `UPDATE children SET status = 'PRESENT' WHERE id = $1`,
+    const childResult = await query(
+      `UPDATE children SET status = 'PRESENT' WHERE id = $1 RETURNING classroom_id`,
       [childId]
     );
 
-    res.status(201).json(result.rows[0]);
+    // Emit socket event
+    const io = req.app.get('io');
+    const classroomId = childResult.rows[0]?.classroom_id;
+    if (classroomId) {
+      io.to(`classroom:${classroomId}`).emit('attendance:changed', {
+        classroomId,
+        childId,
+        status: 'PRESENT'
+      });
+    }
+
+    res.status(201).json(attendance);
   } catch (error) {
     console.error('Check-in error:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -84,12 +109,8 @@ router.post('/check-in', authenticateToken, async (req: AuthRequest, res) => {
 // Check-out
 router.post('/check-out', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const { childId, signatureUrl, notes } = req.body;
+    const { childId, signatureUrl, notes } = CheckOutSchema.parse(req.body);
     const userId = req.user?.id;
-
-    if (!childId) {
-      return res.status(400).json({ error: 'childId is required' });
-    }
 
     // Find today's attendance record
     const attendanceResult = await query(
@@ -114,15 +135,31 @@ router.post('/check-out', authenticateToken, async (req: AuthRequest, res) => {
       [userId, signatureUrl, notes, attendanceResult.rows[0].id]
     );
 
+    const attendance = toCamelCase(result.rows[0]);
+
     // Update child status
-    await query(
-      `UPDATE children SET status = 'CHECKED_OUT' WHERE id = $1`,
+    const childResult = await query(
+      `UPDATE children SET status = 'CHECKED_OUT' WHERE id = $1 RETURNING classroom_id`,
       [childId]
     );
 
-    res.json(result.rows[0]);
+    // Emit socket event
+    const io = req.app.get('io');
+    const classroomId = childResult.rows[0]?.classroom_id;
+    if (classroomId) {
+      io.to(`classroom:${classroomId}`).emit('attendance:changed', {
+        classroomId,
+        childId,
+        status: 'CHECKED_OUT'
+      });
+    }
+
+    res.json(attendance);
   } catch (error) {
     console.error('Check-out error:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });

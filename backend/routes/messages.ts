@@ -1,8 +1,16 @@
 import { Router } from 'express';
 import { query } from '../config/database';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
+import { toCamelCase } from '../utils/case-converter';
+import { z } from 'zod';
 
 const router = Router();
+
+const MessageSchema = z.object({
+  recipientId: z.string().uuid(),
+  content: z.string().min(1),
+  childId: z.string().uuid().optional().nullable(),
+});
 
 // Get messages for current user
 router.get('/', authenticateToken, async (req: AuthRequest, res) => {
@@ -30,7 +38,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     queryText += ' ORDER BY m.created_at DESC';
 
     const result = await query(queryText, params);
-    res.json(result.rows);
+    res.json(toCamelCase(result.rows));
   } catch (error) {
     console.error('Get messages error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -40,12 +48,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
 // Send message
 router.post('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const { recipientId, content, childId } = req.body;
+    const { recipientId, content, childId } = MessageSchema.parse(req.body);
     const senderId = req.user?.id;
-
-    if (!recipientId || !content) {
-      return res.status(400).json({ error: 'recipientId and content are required' });
-    }
 
     const result = await query(
       `INSERT INTO messages (sender_id, recipient_id, child_id, content)
@@ -54,9 +58,18 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       [senderId, recipientId, childId, content]
     );
 
-    res.status(201).json(result.rows[0]);
+    const newMessage = toCamelCase(result.rows[0]);
+
+    // Emit socket event
+    const io = req.app.get('io');
+    io.to(`user:${recipientId}`).emit('message:new', newMessage);
+
+    res.status(201).json(newMessage);
   } catch (error) {
     console.error('Send message error:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -79,7 +92,7 @@ router.patch('/:id/read', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(404).json({ error: 'Message not found' });
     }
 
-    res.json(result.rows[0]);
+    res.json(toCamelCase(result.rows[0]));
   } catch (error) {
     console.error('Mark message read error:', error);
     res.status(500).json({ error: 'Internal server error' });
