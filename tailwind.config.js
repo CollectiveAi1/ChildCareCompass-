@@ -34,6 +34,10 @@ export default {
         'soft': '0 4px 20px rgba(0, 0, 0, 0.05)',
         '3xl': '0 20px 60px rgba(0, 0, 0, 0.15)',
       },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Quicksand', 'system-ui', 'sans-serif'],
+      },
       animation: {
         'float': 'float 6s ease-in-out infinite',
         'in': 'fadeIn 0.3s ease-in',
@@ -47,9 +51,6 @@ export default {
           '0%': { opacity: '0', transform: 'scale(0.95)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
         },
-      },
-      fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
       },
     },
   },
