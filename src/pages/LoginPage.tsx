@@ -36,20 +36,20 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-brand-teal flex items-center justify-center p-6 text-center font-sans">
-      <div className="bg-white p-12 rounded-[64px] shadow-3xl w-full max-w-lg border border-white/50 animate-in zoom-in duration-500">
-        <div className="mb-10">
-          <Logo size={180} showTagline={true} />
+    <div className="min-h-screen bg-brand-teal flex items-center justify-center p-4 sm:p-6 text-center font-sans">
+      <div className="bg-white p-6 sm:p-12 rounded-[32px] sm:rounded-[64px] shadow-3xl w-full max-w-lg border border-white/50 animate-in zoom-in duration-500">
+        <div className="mb-6 sm:mb-10">
+          <Logo size={120} showTagline={true} className="sm:w-[180px]" />
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex bg-slate-50 rounded-3xl p-1.5 border border-slate-100">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          <div className="flex bg-slate-50 rounded-2xl sm:rounded-3xl p-1.5 border border-slate-100">
             {(['ADMIN', 'TEACHER', 'PARENT'] as UserRole[]).map((r) => (
               <button
                 key={r}
                 type="button"
                 onClick={() => setRole(r)}
-                className={`flex-1 py-4 rounded-2xl text-xs font-black transition-all ${
+                className={`flex-1 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-[10px] sm:text-xs font-black transition-all ${
                   role === r
                     ? 'bg-white text-brand-teal shadow-xl shadow-brand-teal/10'
                     : 'text-slate-400'
@@ -65,7 +65,7 @@ export const LoginPage: React.FC = () => {
             placeholder="Work Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-8 py-6 bg-slate-50 border border-slate-100 rounded-[32px] outline-none focus:ring-4 focus:ring-brand-teal/10 transition-all font-bold text-slate-900 placeholder:text-slate-300"
+            className="w-full px-4 sm:px-8 py-4 sm:py-6 bg-slate-50 border border-slate-100 rounded-[24px] sm:rounded-[32px] outline-none focus:ring-4 focus:ring-brand-teal/10 transition-all font-bold text-sm sm:text-base text-slate-900 placeholder:text-slate-300"
             required
           />
 
@@ -74,20 +74,20 @@ export const LoginPage: React.FC = () => {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-8 py-6 bg-slate-50 border border-slate-100 rounded-[32px] outline-none focus:ring-4 focus:ring-brand-teal/10 transition-all font-bold text-slate-900 placeholder:text-slate-300"
+            className="w-full px-4 sm:px-8 py-4 sm:py-6 bg-slate-50 border border-slate-100 rounded-[24px] sm:rounded-[32px] outline-none focus:ring-4 focus:ring-brand-teal/10 transition-all font-bold text-sm sm:text-base text-slate-900 placeholder:text-slate-300"
             required
           />
 
           <button
             type="submit"
             disabled={loginMutation.isPending}
-            className="w-full py-6 bg-brand-teal text-white font-black text-2xl rounded-[32px] shadow-2xl shadow-brand-teal/30 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+            className="w-full py-4 sm:py-6 bg-brand-teal text-white font-black text-lg sm:text-2xl rounded-[24px] sm:rounded-[32px] shadow-2xl shadow-brand-teal/30 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
           >
             {loginMutation.isPending ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
 
-        <div className="mt-6 text-xs text-slate-400">
+        <div className="mt-4 sm:mt-6 text-[10px] sm:text-xs text-slate-400">
           <p>Demo Mode: Use any email with password "demo123"</p>
           <p className="mt-2">Note: Database setup required for full functionality</p>
         </div>
