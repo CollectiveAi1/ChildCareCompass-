@@ -39,8 +39,8 @@ interface AppStore {
 export const useStore = create<AppStore>((set) => ({
   // Initial state
   user: null,
-  token: localStorage.getItem('token'),
-  isAuthenticated: !!localStorage.getItem('token'),
+  token: typeof window !== 'undefined' ? localStorage.getItem('token') : null,
+  isAuthenticated: typeof window !== 'undefined' ? !!localStorage.getItem('token') : false,
   toast: null,
   sidebarOpen: true,
   activeSection: 'DAILY_OPS',
