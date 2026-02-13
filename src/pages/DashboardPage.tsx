@@ -3,10 +3,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { childrenApi, attendanceApi } from '../lib/api';
 import { useStore } from '../store/useStore';
 import { KanbanBoard } from '../components/KanbanBoard';
-import { socketService } from '../lib/socket';
 
 export const DashboardPage: React.FC = () => {
-  const { user, showToast } = useStore();
+  const { showToast } = useStore();
   const queryClient = useQueryClient();
   const [selectedClassroom, setSelectedClassroom] = useState<string>('');
 
@@ -22,16 +21,10 @@ export const DashboardPage: React.FC = () => {
   // Check-in mutation
   const checkInMutation = useMutation({
     mutationFn: (childId: string) => attendanceApi.checkIn(childId),
-    onSuccess: (_, childId) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['children'] });
       queryClient.invalidateQueries({ queryKey: ['attendance'] });
       showToast('Child checked in successfully', 'success');
-
-      // Emit socket event
-      const child = children.find((c: any) => c.id === childId);
-      if (child?.classroom_id) {
-        socketService.emitAttendanceUpdate(child.classroom_id, childId, 'PRESENT');
-      }
     },
     onError: () => {
       showToast('Failed to check in child', 'error');
@@ -41,16 +34,10 @@ export const DashboardPage: React.FC = () => {
   // Check-out mutation
   const checkOutMutation = useMutation({
     mutationFn: (childId: string) => attendanceApi.checkOut(childId),
-    onSuccess: (_, childId) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['children'] });
       queryClient.invalidateQueries({ queryKey: ['attendance'] });
       showToast('Child checked out successfully', 'success');
-
-      // Emit socket event
-      const child = children.find((c: any) => c.id === childId);
-      if (child?.classroom_id) {
-        socketService.emitAttendanceUpdate(child.classroom_id, childId, 'CHECKED_OUT');
-      }
     },
     onError: () => {
       showToast('Failed to check out child', 'error');

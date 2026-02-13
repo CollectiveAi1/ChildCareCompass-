@@ -19,7 +19,7 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production') as any;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
     req.user = decoded;
     next();
   } catch (error) {

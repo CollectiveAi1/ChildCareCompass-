@@ -1,8 +1,23 @@
 import { Router } from 'express';
 import { query } from '../config/database';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
+import { toCamelCase } from '../utils/case-converter';
+import { z } from 'zod';
 
 const router = Router();
+
+const ActivitySchema = z.object({
+  childId: z.string().uuid(),
+  type: z.enum(['CHECK_IN', 'CHECK_OUT', 'PHOTO', 'MEAL', 'NAP', 'INCIDENT', 'NOTE', 'MEDICATION']),
+  title: z.string().min(1),
+  description: z.string().optional().nullable(),
+  mediaUrl: z.string().url().optional().nullable(),
+  metadata: z.record(z.any()).optional().nullable(),
+});
+
+const BulkActivitySchema = ActivitySchema.omit({ childId: true }).extend({
+  childIds: z.array(z.string().uuid()).min(1),
+});
 
 // Get activities for a child
 router.get('/', authenticateToken, async (req: AuthRequest, res) => {
@@ -29,7 +44,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     params.push(parseInt(limit as string));
 
     const result = await query(queryText, params);
-    res.json(result.rows);
+    res.json(toCamelCase(result.rows));
   } catch (error) {
     console.error('Get activities error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -39,12 +54,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
 // Create activity
 router.post('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const { childId, type, title, description, mediaUrl, metadata } = req.body;
+    const { childId, type, title, description, mediaUrl, metadata } = ActivitySchema.parse(req.body);
     const authorId = req.user?.id;
-
-    if (!childId || !type || !title) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
 
     const result = await query(
       `INSERT INTO activities (child_id, author_id, type, title, description, media_url, metadata)
@@ -53,9 +64,18 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       [childId, authorId, type, title, description, mediaUrl, metadata ? JSON.stringify(metadata) : null]
     );
 
-    res.status(201).json(result.rows[0]);
+    const newActivity = toCamelCase(result.rows[0]);
+
+    // Emit socket event
+    const io = req.app.get('io');
+    io.to(`child:${childId}`).emit('activity:new', newActivity);
+
+    res.status(201).json(newActivity);
   } catch (error) {
     console.error('Create activity error:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -63,27 +83,31 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
 // Bulk create activities (for tagging multiple children)
 router.post('/bulk', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const { childIds, type, title, description, mediaUrl, metadata } = req.body;
+    const { childIds, type, title, description, mediaUrl, metadata } = BulkActivitySchema.parse(req.body);
     const authorId = req.user?.id;
 
-    if (!childIds || !Array.isArray(childIds) || childIds.length === 0) {
-      return res.status(400).json({ error: 'childIds must be a non-empty array' });
-    }
+    const result = await query(
+      `INSERT INTO activities (child_id, author_id, type, title, description, media_url, metadata)
+       SELECT cid, $2, $3::activity_type, $4, $5, $6, $7
+       FROM unnest($1::uuid[]) AS cid
+       RETURNING *`,
+      [childIds, authorId, type, title, description, mediaUrl, metadata ? JSON.stringify(metadata) : null]
+    );
 
-    const activities = [];
-    for (const childId of childIds) {
-      const result = await query(
-        `INSERT INTO activities (child_id, author_id, type, title, description, media_url, metadata)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
-         RETURNING *`,
-        [childId, authorId, type, title, description, mediaUrl, metadata ? JSON.stringify(metadata) : null]
-      );
-      activities.push(result.rows[0]);
-    }
+    const newActivities = toCamelCase(result.rows);
 
-    res.status(201).json(activities);
+    // Emit socket events
+    const io = req.app.get('io');
+    newActivities.forEach((activity: any) => {
+      io.to(`child:${activity.childId}`).emit('activity:new', activity);
+    });
+
+    res.status(201).json(newActivities);
   } catch (error) {
     console.error('Bulk create activities error:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });
