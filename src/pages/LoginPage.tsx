@@ -22,6 +22,22 @@ export const LoginPage: React.FC = () => {
       navigate('/dashboard');
     },
     onError: (error: any) => {
+      // If backend is unreachable, fall back to demo mode
+      if (!error.response) {
+        const namePart = email.split('@')[0] || 'Demo';
+        const demoUser = {
+          id: 'demo-user-1',
+          email: email || 'demo@childcarecompass.com',
+          role: role,
+          firstName: namePart.charAt(0).toUpperCase() + namePart.slice(1),
+          lastName: 'User',
+          centerId: 'demo-center',
+        };
+        login(demoUser, 'demo-token');
+        showToast('Demo mode active – running without backend', 'info');
+        navigate('/dashboard');
+        return;
+      }
       showToast(error.response?.data?.error || 'Login failed', 'error');
     },
   });
