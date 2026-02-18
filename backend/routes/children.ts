@@ -1,8 +1,25 @@
 import { Router } from 'express';
 import { query } from '../config/database';
 import { authenticateToken, authorizeRoles, AuthRequest } from '../middleware/auth';
+import { toCamelCase } from '../utils/case-converter';
+import { z } from 'zod';
 
 const router = Router();
+
+const ChildSchema = z.object({
+  firstName: z.string().min(1).optional(),
+  lastName: z.string().min(1).optional(),
+  dob: z.string().optional().nullable(),
+  classroomId: z.string().uuid().optional().nullable(),
+  avatarUrl: z.string().url().optional().nullable(),
+  allergies: z.array(z.string()).optional().nullable(),
+  notes: z.string().optional().nullable(),
+  enrollmentStatus: z.enum(['ENROLLED', 'WAITLIST', 'PENDING', 'ARCHIVED']).optional(),
+});
+
+const ChildUpdateSchema = ChildSchema.extend({
+  status: z.enum(['PRESENT', 'ABSENT', 'CHECKED_OUT']).optional(),
+});
 
 // Get all children (filtered by center)
 router.get('/', authenticateToken, async (req: AuthRequest, res) => {
@@ -26,7 +43,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     queryText += ' ORDER BY c.first_name, c.last_name';
 
     const result = await query(queryText, params);
-    res.json(result.rows);
+    res.json(toCamelCase(result.rows));
   } catch (error) {
     console.error('Get children error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -51,7 +68,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(404).json({ error: 'Child not found' });
     }
 
-    res.json(result.rows[0]);
+    res.json(toCamelCase(result.rows[0]));
   } catch (error) {
     console.error('Get child error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -61,7 +78,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
 // Create child
 router.post('/', authenticateToken, authorizeRoles('ADMIN', 'TEACHER'), async (req: AuthRequest, res) => {
   try {
-    const { firstName, lastName, dob, classroomId, avatarUrl, allergies, notes, enrollmentStatus } = req.body;
+    const { firstName, lastName, dob, classroomId, avatarUrl, allergies, notes, enrollmentStatus } = ChildSchema.parse(req.body);
     const centerId = req.user?.centerId;
 
     const result = await query(
@@ -71,9 +88,12 @@ router.post('/', authenticateToken, authorizeRoles('ADMIN', 'TEACHER'), async (r
       [centerId, classroomId, firstName, lastName, dob, avatarUrl, allergies, notes, enrollmentStatus || 'PENDING']
     );
 
-    res.status(201).json(result.rows[0]);
+    res.status(201).json(toCamelCase(result.rows[0]));
   } catch (error) {
     console.error('Create child error:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -83,7 +103,7 @@ router.put('/:id', authenticateToken, authorizeRoles('ADMIN', 'TEACHER'), async 
   try {
     const { id } = req.params;
     const centerId = req.user?.centerId;
-    const { firstName, lastName, dob, classroomId, avatarUrl, allergies, notes, status, enrollmentStatus } = req.body;
+    const { firstName, lastName, dob, classroomId, avatarUrl, allergies, notes, status, enrollmentStatus } = ChildUpdateSchema.parse(req.body);
 
     const result = await query(
       `UPDATE children
@@ -106,9 +126,12 @@ router.put('/:id', authenticateToken, authorizeRoles('ADMIN', 'TEACHER'), async 
       return res.status(404).json({ error: 'Child not found' });
     }
 
-    res.json(result.rows[0]);
+    res.json(toCamelCase(result.rows[0]));
   } catch (error) {
     console.error('Update child error:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });

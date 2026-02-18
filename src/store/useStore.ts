@@ -36,11 +36,31 @@ interface AppStore {
   setActiveSection: (section: string) => void;
 }
 
+const safeGetItem = (key: string) => {
+  try {
+    return localStorage.getItem(key);
+  } catch (e) {
+    return null;
+  }
+};
+
+const safeSetItem = (key: string, value: string) => {
+  try {
+    localStorage.setItem(key, value);
+  } catch (e) {}
+};
+
+const safeRemoveItem = (key: string) => {
+  try {
+    localStorage.removeItem(key);
+  } catch (e) {}
+};
+
 export const useStore = create<AppStore>((set) => ({
   // Initial state
   user: null,
-  token: localStorage.getItem('token'),
-  isAuthenticated: !!localStorage.getItem('token'),
+  token: safeGetItem('token'),
+  isAuthenticated: !!safeGetItem('token'),
   toast: null,
   sidebarOpen: true,
   activeSection: 'DAILY_OPS',
@@ -50,20 +70,20 @@ export const useStore = create<AppStore>((set) => ({
 
   setToken: (token) => {
     if (token) {
-      localStorage.setItem('token', token);
+      safeSetItem('token', token);
     } else {
-      localStorage.removeItem('token');
+      safeRemoveItem('token');
     }
     set({ token, isAuthenticated: !!token });
   },
 
   login: (user, token) => {
-    localStorage.setItem('token', token);
+    safeSetItem('token', token);
     set({ user, token, isAuthenticated: true });
   },
 
   logout: () => {
-    localStorage.removeItem('token');
+    safeRemoveItem('token');
     set({ user: null, token: null, isAuthenticated: false });
   },
 

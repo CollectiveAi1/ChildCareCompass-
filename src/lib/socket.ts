@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001';
+const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || window.location.origin;
 
 class SocketService {
   private socket: Socket | null = null;
@@ -54,18 +54,6 @@ class SocketService {
     this.socket?.emit('join:classroom', classroomId);
   }
 
-  // Emit events
-  emitActivityCreated(childId: string, activity: any) {
-    this.socket?.emit('activity:created', { childId, activity });
-  }
-
-  emitMessageSent(recipientId: string, message: any) {
-    this.socket?.emit('message:sent', { recipientId, message });
-  }
-
-  emitAttendanceUpdate(classroomId: string, childId: string, status: string) {
-    this.socket?.emit('attendance:update', { classroomId, childId, status });
-  }
 
   // Listen to events
   onActivityNew(callback: (activity: any) => void) {
