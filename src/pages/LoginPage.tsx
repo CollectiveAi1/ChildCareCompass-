@@ -10,7 +10,7 @@ export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login, showToast } = useStore();
   const [role, setRole] = useState<UserRole>(UserRole.ADMIN);
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('admin@demo.com');
   const [password, setPassword] = useState('demo123');
 
   const loginMutation = useMutation({
