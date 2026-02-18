@@ -36,42 +36,63 @@ interface AppStore {
   setActiveSection: (section: string) => void;
 }
 
-export const useStore = create<AppStore>((set) => ({
-  // Initial state
-  user: null,
-  token: localStorage.getItem('token'),
-  isAuthenticated: !!localStorage.getItem('token'),
-  toast: null,
-  sidebarOpen: true,
-  activeSection: 'DAILY_OPS',
+const readToken = () => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
 
-  // Actions
-  setUser: (user) => set({ user }),
+  return window.localStorage.getItem('token');
+};
 
-  setToken: (token) => {
-    if (token) {
-      localStorage.setItem('token', token);
-    } else {
-      localStorage.removeItem('token');
-    }
-    set({ token, isAuthenticated: !!token });
-  },
+const writeToken = (token: string | null) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
 
-  login: (user, token) => {
-    localStorage.setItem('token', token);
-    set({ user, token, isAuthenticated: true });
-  },
+  if (token) {
+    window.localStorage.setItem('token', token);
+    return;
+  }
 
-  logout: () => {
-    localStorage.removeItem('token');
-    set({ user: null, token: null, isAuthenticated: false });
-  },
+  window.localStorage.removeItem('token');
+};
 
-  showToast: (message, type) => set({ toast: { message, type } }),
+export const useStore = create<AppStore>((set) => {
+  const initialToken = readToken();
 
-  hideToast: () => set({ toast: null }),
+  return {
+    // Initial state
+    user: null,
+    token: initialToken,
+    isAuthenticated: !!initialToken,
+    toast: null,
+    sidebarOpen: true,
+    activeSection: 'DAILY_OPS',
 
-  toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+    // Actions
+    setUser: (user) => set({ user }),
 
-  setActiveSection: (section) => set({ activeSection: section }),
-}));
+    setToken: (token) => {
+      writeToken(token);
+      set({ token, isAuthenticated: !!token });
+    },
+
+    login: (user, token) => {
+      writeToken(token);
+      set({ user, token, isAuthenticated: true });
+    },
+
+    logout: () => {
+      writeToken(null);
+      set({ user: null, token: null, isAuthenticated: false });
+    },
+
+    showToast: (message, type) => set({ toast: { message, type } }),
+
+    hideToast: () => set({ toast: null }),
+
+    toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+
+    setActiveSection: (section) => set({ activeSection: section }),
+  };
+});
