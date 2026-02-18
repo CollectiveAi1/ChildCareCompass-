@@ -4,13 +4,13 @@
 
 ### Option 1: GitHub Pages (Recommended)
 
-1. Go to your GitHub repository: https://github.com/CollectiveAi1/NestFlow-
+1. Go to your GitHub repository: https://github.com/CollectiveAi1/ChildCareCompass-
 2. Click on **Settings** → **Pages**
 3. Under "Source", select **Deploy from a branch**
 4. Select branch: **gh-pages** and folder: **/ (root)**
 5. Click **Save**
 6. Wait 2-3 minutes for deployment
-7. Your site will be live at: **https://collectiveai1.github.io/NestFlow-/**
+7. Your site will be live at: **https://collectiveai1.github.io/ChildCareCompass-/**
 
 To update the deployment:
 ```bash
@@ -22,9 +22,9 @@ npm run deploy
 1. Go to https://vercel.com
 2. Sign in with GitHub
 3. Click "Import Project"
-4. Select the **NestFlow-** repository
+4. Select the **ChildCareCompass-** repository
 5. Click **Deploy**
-6. Your site will be live at a Vercel URL (e.g., `nestflow.vercel.app`)
+6. Your site will be live at a Vercel URL (e.g., `child-care-compass.vercel.app`)
 
 ### Option 3: Netlify
 

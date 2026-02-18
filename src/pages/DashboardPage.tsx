@@ -66,21 +66,21 @@ export const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-8">
-        <h1 className="text-4xl font-black text-slate-800 mb-2">Daily Operations</h1>
-        <p className="text-slate-600">
+    <div className="p-3 sm:p-6">
+      <div className="mb-4 sm:mb-8">
+        <h1 className="text-2xl sm:text-4xl font-black text-slate-800 mb-1 sm:mb-2">Daily Operations</h1>
+        <p className="text-sm sm:text-base text-slate-600">
           Manage check-ins, check-outs, and daily activities
         </p>
       </div>
 
-      <div className="mb-6">
-        <div className="bg-white rounded-2xl p-4 shadow-soft flex items-center gap-4">
-          <span className="font-bold text-slate-700">Filter by Classroom:</span>
+      <div className="mb-4 sm:mb-6">
+        <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-soft flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+          <span className="font-bold text-sm sm:text-base text-slate-700">Filter by Classroom:</span>
           <select
             value={selectedClassroom}
             onChange={(e) => setSelectedClassroom(e.target.value)}
-            className="px-4 py-2 bg-slate-50 rounded-xl border border-slate-200 font-bold text-slate-800"
+            className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-slate-50 rounded-lg sm:rounded-xl border border-slate-200 font-bold text-sm sm:text-base text-slate-800"
           >
             <option value="">All Classrooms</option>
             <option value="toddlers">Toddlers 1A</option>
