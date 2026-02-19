@@ -13,13 +13,11 @@ export const toCamelCase = (obj: any): any => {
   if (Array.isArray(obj)) {
     return obj.map((v) => toCamelCase(v));
   } else if (obj !== null && typeof obj === 'object' && obj.constructor === Object) {
-    return Object.keys(obj).reduce(
-      (result, key) => ({
-        ...result,
-        [snakeToCamel(key)]: toCamelCase(obj[key]),
-      }),
-      {}
-    );
+    const result: any = {};
+    for (const key of Object.keys(obj)) {
+      result[snakeToCamel(key)] = toCamelCase(obj[key]);
+    }
+    return result;
   }
   return obj;
 };

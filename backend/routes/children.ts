@@ -46,14 +46,18 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     res.json(toCamelCase(result.rows));
   } catch (error) {
     console.error('Get children error:', error);
+    // Fallback for demo mode
+    if (req.user?.email?.endsWith('@demo.com')) {
+      return res.json([]);
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 // Get single child
 router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
+  const { id } = req.params;
   try {
-    const { id } = req.params;
     const centerId = req.user?.centerId;
 
     const result = await query(
@@ -65,12 +69,18 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
     );
 
     if (result.rows.length === 0) {
+      if (req.user?.email?.endsWith('@demo.com')) {
+        return res.json({ id, firstName: 'Demo', lastName: 'Child', status: 'ABSENT' });
+      }
       return res.status(404).json({ error: 'Child not found' });
     }
 
     res.json(toCamelCase(result.rows[0]));
   } catch (error) {
     console.error('Get child error:', error);
+    if (req.user?.email?.endsWith('@demo.com')) {
+      return res.json({ id, firstName: 'Demo', lastName: 'Child', status: 'ABSENT' });
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });
