@@ -12,21 +12,18 @@ export const DashboardPage: React.FC = () => {
   const [selectedClassroom, setSelectedClassroom] = useState<string>('');
 
   // Fetch children - with demo data fallback
-  const { data: children = [], isLoading, isError } = useQuery({
+  const { data: children = [], isLoading } = useQuery({
     queryKey: ['children', selectedClassroom],
     queryFn: async () => {
       try {
         const response = await childrenApi.getAll(selectedClassroom);
         return response.data;
       } catch (error: any) {
-        // If backend is unreachable, use demo data
-        if (!error.response) {
-          return getDemoChildren(selectedClassroom);
-        }
-        throw error;
+        // Always fall back to demo data on any error (backend not available)
+        return getDemoChildren(selectedClassroom);
       }
     },
-    retry: false, // Don't retry on network errors, use demo data immediately
+    retry: false, // Don't retry on errors, use demo data immediately
   });
 
   // Check-in mutation - with demo mode support
@@ -35,12 +32,9 @@ export const DashboardPage: React.FC = () => {
       try {
         return await attendanceApi.checkIn(childId);
       } catch (error: any) {
-        // If backend is unreachable, update demo data
-        if (!error.response) {
-          updateDemoChildStatus(childId, 'PRESENT');
-          return { data: { success: true } };
-        }
-        throw error;
+        // Always fall back to demo mode on any error
+        updateDemoChildStatus(childId, 'PRESENT');
+        return { data: { success: true } };
       }
     },
     onSuccess: (_, childId) => {
@@ -65,12 +59,9 @@ export const DashboardPage: React.FC = () => {
       try {
         return await attendanceApi.checkOut(childId);
       } catch (error: any) {
-        // If backend is unreachable, update demo data
-        if (!error.response) {
-          updateDemoChildStatus(childId, 'CHECKED_OUT');
-          return { data: { success: true } };
-        }
-        throw error;
+        // Always fall back to demo mode on any error
+        updateDemoChildStatus(childId, 'CHECKED_OUT');
+        return { data: { success: true } };
       }
     },
     onSuccess: (_, childId) => {
@@ -99,13 +90,11 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <div className="p-3 sm:p-6">
-      {isError && (
-        <div className="mb-4 bg-blue-50 border border-blue-200 rounded-xl p-3 sm:p-4">
-          <p className="text-xs sm:text-sm text-blue-800 font-bold">
-            🎭 Demo Mode Active - Using sample data (backend not connected)
-          </p>
-        </div>
-      )}
+      <div className="mb-4 bg-gradient-to-r from-brand-teal to-brand-sky rounded-xl p-3 sm:p-4 shadow-soft">
+        <p className="text-xs sm:text-sm text-white font-bold">
+          🎭 Demo Mode - Explore the interface with sample children data
+        </p>
+      </div>
 
       <div className="mb-4 sm:mb-8">
         <h1 className="text-2xl sm:text-4xl font-black text-slate-800 mb-1 sm:mb-2">Daily Operations</h1>
